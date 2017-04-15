@@ -5,8 +5,8 @@ import NavBar from './components/navbar';
 import LeftSideBar from './components/leftsidebar';
 import RightSideBar from './components/rightsidebar';
 import ChatPopup from './components/chatpopup';
-import FeedItem from './components/feeditem';
-import {hideElement} from './util';
+//import FeedItem from './components/feeditem';
+//import {hideElement} from './util';
 import {searchForFeedItems, deleteFeedItem} from './server';
 import { IndexRoute, Router, Route, hashHistory } from 'react-router'
 import ErrorBanner from './components/errorbanner'

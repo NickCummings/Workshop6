@@ -1,9 +1,10 @@
-import {readDocument, writeDocument, addDocument, deleteDocument, getCollection} from './database.js';
+//import {readDocument, writeDocument, addDocument, deleteDocument, getCollection} from './database.js';
 
 /**
  * Emulates how a REST call is *asynchronous* -- it calls your function back
  * some time in the future with data.
  */
+ /*
 function emulateServerReturn(data, cb) {
   setTimeout(() => {
     cb(data);
@@ -13,6 +14,7 @@ function emulateServerReturn(data, cb) {
 /**
  * Resolves a feed item. Internal to the server, since it's synchronous.
  */
+ /*
 function getFeedItemSync(feedItemId) {
   var feedItem = readDocument('feedItems', feedItemId);
   // Resolve 'like' counter.
@@ -26,6 +28,7 @@ function getFeedItemSync(feedItemId) {
   });
   return feedItem;
 }
+*/
 
 /**
  * Emulates a REST call to get the feed data for a particular user.
@@ -57,18 +60,16 @@ export function getFeedData(user, cb) {
 /**
  * Adds a new comment to the database on the given feed item.
  */
-export function postComment(feedItemId, author, contents, cb) {
-  var feedItem = readDocument('feedItems', feedItemId);
-  feedItem.comments.push({
-    "author": author,
-    "contents": contents,
-    "postDate": new Date().getTime(),
-    "likeCounter": []
-  });
-  writeDocument('feedItems', feedItem);
-  // Return a resolved version of the feed item.
-  emulateServerReturn(getFeedItemSync(feedItemId), cb);
-}
+  export function postComment(feedItemId, author, contents, cb) {
+     sendXHR('POST', '/feeditem/' + feedItemId + '/commentthread/', {
+       'author': author,
+       'contents': contents,
+       'postDate': new Date().getTime()
+     },
+     (xhr) => {
+       cb(JSON.parse(xhr.responseText))
+     });
+   }
 
 /**
  * Updates a feed item's likeCounter by adding the user to the likeCounter.
@@ -99,29 +100,22 @@ export function postComment(feedItemId, author, contents, cb) {
 /**
  * Adds a 'like' to a comment.
  */
-export function likeComment(feedItemId, commentIdx, userId, cb) {
-  var feedItem = readDocument('feedItems', feedItemId);
-  var comment = feedItem.comments[commentIdx];
-  comment.likeCounter.push(userId);
-  writeDocument('feedItems', feedItem);
-  comment.author = readDocument('users', comment.author);
-  emulateServerReturn(comment, cb);
-}
+  export function likeComment(feedItemId, commentIdx, userId, cb) {
+     sendXHR('PUT', '/feeditem/' + feedItemId + '/commentthread/' + commentIdx +
+               '/likelist/' + userId, undefined, (xhr) => {
+                 cb(JSON.parse(xhr.responseText));
+               });
+   }
 
 /**
  * Removes a 'like' from a comment.
  */
-export function unlikeComment(feedItemId, commentIdx, userId, cb) {
-  var feedItem = readDocument('feedItems', feedItemId);
-  var comment = feedItem.comments[commentIdx];
-  var userIndex = comment.likeCounter.indexOf(userId);
-  if (userIndex !== -1) {
-    comment.likeCounter.splice(userIndex, 1);
-    writeDocument('feedItems', feedItem);
-  }
-  comment.author = readDocument('users', comment.author);
-  emulateServerReturn(comment, cb);
-}
+  export function unlikeComment(feedItemId, commentIdx, userId, cb) {
+     sendXHR('DELETE', '/feeditem/' + feedItemId + '/commentthread/' + commentIdx +
+     '/likelist/' + userId, undefined, (xhr) => {
+       cb(JSON.parse(xhr.responseText));
+     });
+   }
 
 /**
  * Updates the text in a feed item (assumes a status update)
